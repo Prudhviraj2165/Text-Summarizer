@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary Result - AutoSummarizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Summary Result</h1>
+            <a href="{{ url_for('index') }}" class="back-link">← Back to Summarizer</a>
+        </header>
+
+        <main>
+            <div class="result-container">
+                <div class="summary-result">
+                    <h2>Generated Summary</h2>
+                    <p>{{ summary }}</p>
+                </div>
+
+                <div class="stats-result">
+                    <h3>Statistics</h3>
+                    <ul>
+                        <li><strong>Original Words:</strong> {{ stats.original_words }}</li>
+                        <li><strong>Summary Words:</strong> {{ stats.summary_words }}</li>
+                        <li><strong>Compression:</strong> {{ stats.compression_ratio }}</li>
+                        <li><strong>Mode:</strong> {{ stats.mode }}</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

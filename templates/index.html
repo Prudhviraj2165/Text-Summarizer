@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoSummarizer - AI Text Summarization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AutoSummarizer</h1>
+            <p>Context-Aware Text Summarization using Google Pegasus</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <h2>Input Text</h2>
+                <textarea
+                    id="inputText"
+                    placeholder="Paste your text here (minimum 50 characters)..."
+                    rows="10"
+                ></textarea>
+
+                <div class="controls">
+                    <div class="mode-selector">
+                        <label>Summary Mode:</label>
+                        <select id="summaryMode">
+                            <option value="brief">Brief (20% of original)</option>
+                            <option value="balanced" selected>Balanced (30% of original)</option>
+                            <option value="detailed">Detailed (50% of original)</option>
+                        </select>
+                    </div>
+
+                    <button id="summarizeBtn" onclick="summarizeText()">
+                        Generate Summary
+                    </button>
+
+                    <button id="clearBtn" onclick="clearAll()">
+                        Clear
+                    </button>
+                </div>
+
+                <div id="charCount" class="char-count">0 characters</div>
+            </div>
+
+            <div class="output-section" id="outputSection" style="display: none;">
+                <h2>Summary</h2>
+                <div id="summaryOutput" class="summary-box"></div>
+
+                <div id="statsSection" class="stats">
+                    <h3>Statistics</h3>
+                    <div id="statsContent"></div>
+                </div>
+
+                <button onclick="copyToClipboard()" class="copy-btn">
+                    📋 Copy Summary
+                </button>
+            </div>
+
+            <div id="loadingSpinner" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating summary...</p>
+            </div>
+
+            <div id="errorMessage" class="error" style="display: none;"></div>
+        </main>
+
+        <footer>
+            <p>Powered by Google Pegasus (google/pegasus-xsum)</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
