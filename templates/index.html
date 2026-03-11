@@ -3,71 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoSummarizer - AI Text Summarization</title>
+    <title>AutoSummarizer - Premium AI Text Summarizer</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
+    <!-- Background animated elements -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+
+    <div class="container glass-panel">
         <header>
-            <h1>🤖 AutoSummarizer</h1>
-            <p>Context-Aware Text Summarization using Google Pegasus</p>
+            <div class="logo-wrapper">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h1>AutoSummarizer</h1>
+            <p>Intelligence distilled. Context-aware text summarization using BART AI.</p>
         </header>
 
         <main>
             <div class="input-section">
-                <h2>Input Text</h2>
-                <textarea
-                    id="inputText"
-                    placeholder="Paste your text here (minimum 50 characters)..."
-                    rows="10"
-                ></textarea>
+                <div class="section-header">
+                    <h2><i class="fas fa-keyboard"></i> Input Text</h2>
+                    <span id="charCount" class="char-count">0 chars</span>
+                </div>
+                
+                <div class="textarea-wrapper">
+                    <textarea
+                        id="inputText"
+                        placeholder="Paste your text here (minimum 50 characters)..."
+                        rows="8"
+                    ></textarea>
+                </div>
 
                 <div class="controls">
-                    <div class="mode-selector">
-                        <label>Summary Mode:</label>
+                    <div class="mode-selector styled-select">
+                        <label for="summaryMode"><i class="fas fa-sliders-h"></i> Detail Level:</label>
                         <select id="summaryMode">
-                            <option value="brief">Brief (20% of original)</option>
-                            <option value="balanced" selected>Balanced (30% of original)</option>
-                            <option value="detailed">Detailed (50% of original)</option>
+                            <option value="brief">Brief Abstract</option>
+                            <option value="balanced" selected>Balanced Summary</option>
+                            <option value="detailed">In-Depth Analysis</option>
                         </select>
                     </div>
 
-                    <button id="summarizeBtn" onclick="summarizeText()">
-                        Generate Summary
-                    </button>
-
-                    <button id="clearBtn" onclick="clearAll()">
-                        Clear
-                    </button>
+                    <div class="action-buttons">
+                        <button id="clearBtn" class="btn btn-secondary" onclick="clearAll()">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                        <button id="summarizeBtn" class="btn btn-primary" onclick="summarizeText()">
+                            <i class="fas fa-wand-magic-sparkles"></i> Generate
+                        </button>
+                    </div>
                 </div>
+            </div>
 
-                <div id="charCount" class="char-count">0 characters</div>
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="loading-content">
+                    <div class="pulse-ring"></div>
+                    <i class="fas fa-robot robot-icon"></i>
+                    <p>AI is analyzing context...</p>
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error-toast" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText">Error message</span>
             </div>
 
             <div class="output-section" id="outputSection" style="display: none;">
-                <h2>Summary</h2>
-                <div id="summaryOutput" class="summary-box"></div>
+                <div class="section-header">
+                    <h2><i class="fas fa-file-alt"></i> Summary</h2>
+                    <button onclick="copyToClipboard()" class="btn btn-icon" title="Copy to clipboard">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                
+                <div id="summaryOutput" class="summary-box glass-panel-inner"></div>
 
                 <div id="statsSection" class="stats">
-                    <h3>Statistics</h3>
-                    <div id="statsContent"></div>
+                    <h3><i class="fas fa-chart-pie"></i> Generation Metrics</h3>
+                    <div id="statsContent" class="stats-grid">
+                        <!-- Stats injected via JS -->
+                    </div>
                 </div>
-
-                <button onclick="copyToClipboard()" class="copy-btn">
-                    📋 Copy Summary
-                </button>
             </div>
-
-            <div id="loadingSpinner" class="loading" style="display: none;">
-                <div class="spinner"></div>
-                <p>Generating summary...</p>
-            </div>
-
-            <div id="errorMessage" class="error" style="display: none;"></div>
         </main>
 
         <footer>
-            <p>Powered by Google Pegasus (google/pegasus-xsum)</p>
+            <p>Powered by <i class="fab fa-hubspot"></i> facebook/bart-large-cnn &middot; Crafted with <i class="fas fa-heart"" style="color:#e74c3c"></i></p>
         </footer>
     </div>
 

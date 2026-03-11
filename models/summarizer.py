@@ -12,16 +12,17 @@ os.environ["TRANSFORMERS_NO_FLAX"] = "1"
 
 
 class AutoSummarizer:
-    def __init__(self, model_name: str = "google/pegasus-xsum"):
+    def __init__(self, model_name: str = "facebook/bart-large-cnn"):
         """
-        Initialize Pegasus summarizer (GPU if available).
+        Initialize BART summarizer (GPU if available).
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Using device: {self.device}")
         logger.info(f"Loading model: {model_name}")
 
-        self.tokenizer = PegasusTokenizer.from_pretrained(model_name)
-        self.model = PegasusForConditionalGeneration.from_pretrained(model_name)
+        from transformers import BartTokenizer, BartForConditionalGeneration
+        self.tokenizer = BartTokenizer.from_pretrained(model_name)
+        self.model = BartForConditionalGeneration.from_pretrained(model_name)
         self.model.to(self.device)
         self.model.eval()
 
@@ -44,7 +45,7 @@ class AutoSummarizer:
         return chunks
 
     def generate_summary(self, text: str, mode: str = "balanced", max_length=None, min_length=None):
-        """Generate a context-aware summary using Pegasus."""
+        """Generate a context-aware summary using BART."""
         if not text or len(text.strip()) < 50:
             return {"summary": "Text too short to summarize (minimum 50 characters required).",
                     "stats": {}, "status": "error"}
@@ -52,33 +53,41 @@ class AutoSummarizer:
         text = self.preprocess_text(text)
         word_count = len(text.split())
 
+        # Target lengths for BART-large-cnn
         if max_length is None or min_length is None:
             if mode == "brief":
-                max_length = max(60, int(word_count * 0.2))
-                min_length = max(30, int(word_count * 0.1))
+                max_length = max(50, int(word_count * 0.2))
+                min_length = max(20, int(word_count * 0.1))
             elif mode == "detailed":
-                max_length = max(200, int(word_count * 0.5))
-                min_length = max(100, int(word_count * 0.3))
-            else:
-                max_length = max(128, int(word_count * 0.3))
+                max_length = max(200, int(word_count * 0.6))
+                min_length = max(100, int(word_count * 0.35))
+            else: # balanced
+                max_length = max(130, int(word_count * 0.35))
                 min_length = max(50, int(word_count * 0.15))
 
+        # BART max token limit usually works best <= 142 generated tokens, cap safely
         max_length = min(max_length, 256)
         min_length = min(min_length, max_length - 10)
 
         input_tokens = self.tokenizer.encode(text, truncation=False)
 
-        if len(input_tokens) > 512:
-            chunks = self.split_into_chunks(text)
+        if len(input_tokens) > 1024: # BART handles up to 1024 tokens well
+            chunks = self.split_into_chunks(text, max_tokens=1000)
             summaries = []
             for chunk in chunks:
-                inputs = self.tokenizer(chunk, max_length=512, truncation=True, return_tensors="pt")
+                inputs = self.tokenizer(chunk, max_length=1024, truncation=True, return_tensors="pt")
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                
+                # proportional length for chunks
+                chunk_max_len = max(30, max_length // len(chunks) + 20)
+                chunk_min_len = max(10, min_length // len(chunks))
+                chunk_min_len = min(chunk_min_len, chunk_max_len - 5)
+
                 with torch.no_grad():
                     ids = self.model.generate(
                         inputs["input_ids"],
-                        max_length=max(32, max_length // len(chunks) + 30),
-                        min_length=max(16, min_length // len(chunks)),
+                        max_length=chunk_max_len,
+                        min_length=chunk_min_len,
                         length_penalty=2.0,
                         num_beams=4,
                         early_stopping=True,
@@ -86,8 +95,12 @@ class AutoSummarizer:
                 summaries.append(self.tokenizer.decode(ids[0], skip_special_tokens=True))
             final_summary = " ".join(summaries)
         else:
-            inputs = self.tokenizer(text, max_length=512, truncation=True, return_tensors="pt")
+            inputs = self.tokenizer(text, max_length=1024, truncation=True, return_tensors="pt")
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            
+            # Ensure min_length < max_length within bounds for normal generation
+            min_length = min(min_length, max_length - 5)
+            
             with torch.no_grad():
                 ids = self.model.generate(
                     inputs["input_ids"],
@@ -100,7 +113,7 @@ class AutoSummarizer:
             final_summary = self.tokenizer.decode(ids[0], skip_special_tokens=True)
 
         summary_word_count = len(final_summary.split())
-        compression_ratio = round((summary_word_count / word_count) * 100, 2)
+        compression_ratio = round((summary_word_count / max(1, word_count)) * 100, 2)
 
         return {
             "summary": final_summary,

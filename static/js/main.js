@@ -6,19 +6,20 @@ const summarizeBtn = document.getElementById('summarizeBtn');
 const outputSection = document.getElementById('outputSection');
 const summaryOutput = document.getElementById('summaryOutput');
 const statsContent = document.getElementById('statsContent');
-const loadingSpinner = document.getElementById('loadingSpinner');
+const loadingOverlay = document.getElementById('loadingOverlay');
 const errorMessage = document.getElementById('errorMessage');
+const errorText = document.getElementById('errorText');
 const summaryMode = document.getElementById('summaryMode');
 
 // Update character count
 inputText.addEventListener('input', function() {
     const count = this.value.length;
-    charCount.textContent = `${count} characters`;
+    charCount.textContent = `${count} chars`;
 
     if (count < 50) {
-        charCount.style.color = '#e74c3c';
+        charCount.style.color = '#ef4444'; // Red
     } else {
-        charCount.style.color = '#27ae60';
+        charCount.style.color = '#10b981'; // Green
     }
 });
 
@@ -39,10 +40,11 @@ async function summarizeText() {
     }
 
     // Show loading
-    loadingSpinner.style.display = 'block';
+    loadingOverlay.style.display = 'block';
     outputSection.style.display = 'none';
     errorMessage.style.display = 'none';
     summarizeBtn.disabled = true;
+    summarizeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
 
     try {
         const response = await fetch('/summarize', {
@@ -68,8 +70,9 @@ async function summarizeText() {
         showError('Failed to connect to the server. Please try again.');
         console.error('Error:', error);
     } finally {
-        loadingSpinner.style.display = 'none';
+        loadingOverlay.style.display = 'none';
         summarizeBtn.disabled = false;
+        summarizeBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate';
     }
 }
 
@@ -81,20 +84,16 @@ function displaySummary(data) {
     if (data.stats) {
         statsContent.innerHTML = `
             <div class="stat-item">
-                <div class="stat-label">Original Words</div>
+                <div class="stat-label">Original</div>
                 <div class="stat-value">${data.stats.original_words}</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Summary Words</div>
+                <div class="stat-label">Summary</div>
                 <div class="stat-value">${data.stats.summary_words}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Compression</div>
                 <div class="stat-value">${data.stats.compression_ratio}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Mode</div>
-                <div class="stat-value">${data.stats.mode}</div>
             </div>
         `;
     }
@@ -102,13 +101,15 @@ function displaySummary(data) {
     outputSection.style.display = 'block';
 
     // Smooth scroll to output
-    outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+        outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 // Show error message
 function showError(message) {
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
+    errorText.textContent = message;
+    errorMessage.style.display = 'flex';
 
     setTimeout(() => {
         errorMessage.style.display = 'none';
@@ -120,18 +121,21 @@ function copyToClipboard() {
     const summary = summaryOutput.textContent;
 
     navigator.clipboard.writeText(summary).then(() => {
-        alert('Summary copied to clipboard!');
+        const icon = document.querySelector('.fa-copy');
+        icon.className = 'fas fa-check text-green-500';
+        setTimeout(() => {
+            icon.className = 'fas fa-copy';
+        }, 2000);
     }).catch(err => {
         console.error('Failed to copy:', err);
-        alert('Failed to copy summary.');
     });
 }
 
 // Clear all
 function clearAll() {
     inputText.value = '';
-    charCount.textContent = '0 characters';
-    charCount.style.color = '#666';
+    charCount.textContent = '0 chars';
+    charCount.style.color = 'var(--text-muted)';
     outputSection.style.display = 'none';
     errorMessage.style.display = 'none';
 }

@@ -47,7 +47,7 @@ def health():
     """Simple health check."""
     return jsonify({
         'status': 'healthy',
-        'model': 'google/pegasus-xsum'
+        'model': 'facebook/bart-large-cnn'
     })
 
 
